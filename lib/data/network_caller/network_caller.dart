@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:task_manager_app/app.dart';
 import 'package:task_manager_app/ui/controllers/auth_cotroller.dart';
+import 'package:task_manager_app/ui/screens/auth/sign_in_screen.dart';
 
 import '../models/network_response.dart';
 
@@ -9,9 +12,10 @@ class NetworkCaller {
   // ✅ GET Request
   static Future<NetworkResponse> getRequest(String url) async {
     try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'token': AuthController.accessToken,
-      });
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {'token': AuthController.accessToken},
+      );
 
       if (response.statusCode == 200) {
         final decodedData = jsonDecode(response.body);
@@ -19,6 +23,13 @@ class NetworkCaller {
           statusCode: response.statusCode,
           isSuccess: true,
           responseData: decodedData,
+        );
+      } else if (response.statusCode == 401) {
+        redirectToLogin();
+        return NetworkResponse(
+          statusCode: response.statusCode,
+          isSuccess: false,
+          errorMessage: 'Server Error: ${response.reasonPhrase}',
         );
       } else {
         return NetworkResponse(
@@ -37,7 +48,10 @@ class NetworkCaller {
   }
 
   // ✅ POST Request
-  static Future<NetworkResponse> postRequest(String url, Map<String, dynamic> body) async {
+  static Future<NetworkResponse> postRequest(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
     try {
       debugPrint(url);
       debugPrint(body.toString());
@@ -58,6 +72,13 @@ class NetworkCaller {
           isSuccess: true,
           responseData: decodedData,
         );
+      }else if (response.statusCode == 401) {
+        redirectToLogin();
+        return NetworkResponse(
+          statusCode: response.statusCode,
+          isSuccess: false,
+          errorMessage: 'Server Error: ${response.reasonPhrase}',
+        );
       } else {
         return NetworkResponse(
           statusCode: response.statusCode,
@@ -72,5 +93,14 @@ class NetworkCaller {
         errorMessage: e.toString(),
       );
     }
+  }
+
+  static void redirectToLogin() async {
+    await AuthController.clearAllData();
+    Navigator.pushAndRemoveUntil(
+      TaskManagerApp.navigatorKey.currentContext!,
+      MaterialPageRoute(builder: (context) => SignInScreen()),
+      (route) => false,
+    );
   }
 }
