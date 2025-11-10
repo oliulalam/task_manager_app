@@ -86,7 +86,9 @@ class _TaskItemState extends State<TaskItem> {
                         onSelected: (String selectedValue) {
                           dropdownValue = selectedValue;
                           if (mounted) {
-                            setState(() {});
+                            setState(() {
+                              _updateTaskStatus(selectedValue);
+                            });
                           }
                         },
                         itemBuilder: (BuildContext context) {
@@ -136,4 +138,25 @@ class _TaskItemState extends State<TaskItem> {
       setState(() {});
     }
   }
+
+  Future<void> _updateTaskStatus(String newStatus) async {
+    _editInProgress = true;
+    if (mounted) setState(() {});
+
+    NetworkResponse response = await NetworkCaller.getRequest(
+      Urls.updateTaskStatus(widget.taskModel.sId!, newStatus),
+    );
+
+    if (response.isSuccess) {
+      showSnackBarMessage(context, 'Status updated to $newStatus');
+      widget.onUpdateTask(); // parent list reload হবে
+    } else {
+      showSnackBarMessage(
+          context, response.errorMessage ?? 'Status update failed!');
+    }
+
+    _editInProgress = false;
+    if (mounted) setState(() {});
+  }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:task_manager_app/ui/controllers/auth_cotroller.dart';
 import 'package:task_manager_app/ui/widgets/background_widget.dart';
 import 'package:task_manager_app/ui/widgets/profile_app_bar.dart';
@@ -16,6 +17,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   TextEditingController _lastNameTEController = TextEditingController();
   TextEditingController _phoneTEController = TextEditingController();
   TextEditingController _passwordTEController = TextEditingController();
+  final GlobalKey<FormState> _forKey = GlobalKey<FormState>();
+
+  XFile? _selectedImage;
 
   @override
   void initState() {
@@ -25,7 +29,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     _firstNameTEController.text = userData.firstName ?? '';
     _lastNameTEController.text = userData.lastName ?? '';
     _phoneTEController.text = userData.mobile ?? '';
-
   }
 
   @override
@@ -48,20 +51,29 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 _buildPhotoPickerWidgets(),
 
                 SizedBox(height: 8),
-                TextFormField(decoration: InputDecoration(hintText: 'Email')),
+                TextFormField(
+                  controller: _emailTEController,
+                  decoration: InputDecoration(hintText: 'Email'),
+                  enabled: false,
+                ),
 
                 SizedBox(height: 8),
                 TextFormField(
+                  controller: _firstNameTEController,
                   decoration: InputDecoration(hintText: 'First name'),
                 ),
 
                 SizedBox(height: 8),
                 TextFormField(
+                  controller: _lastNameTEController,
                   decoration: InputDecoration(hintText: 'Last Name'),
                 ),
 
                 SizedBox(height: 8),
-                TextFormField(decoration: InputDecoration(hintText: 'Mobile')),
+                TextFormField(
+                  controller: _phoneTEController,
+                  decoration: InputDecoration(hintText: 'Mobile'),
+                ),
 
                 SizedBox(height: 8),
                 TextFormField(
@@ -83,32 +95,49 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   }
 
   Widget _buildPhotoPickerWidgets() {
-    return Container(
-      width: double.maxFinite,
-      height: 48,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
-      ),
-      alignment: Alignment.centerLeft,
+    return GestureDetector(
+      onTap: () {
+        _pickProfileImage();
+      },
       child: Container(
-        width: 100,
+        width: double.maxFinite,
         height: 48,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(8),
-            bottomLeft: Radius.circular(8),
-          ),
-          color: Colors.grey,
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
         ),
-        alignment: Alignment.center,
-        child: Text(
-          "Photo",
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-            color: Colors.white,
-          ),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          children: [
+            Container(
+              width: 100,
+              height: 48,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
+                ),
+                color: Colors.grey,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                "Photo",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                _selectedImage?.name ?? 'No image selected',
+                maxLines: 1,
+                style: TextStyle(overflow: TextOverflow.ellipsis),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -117,5 +146,19 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _pickProfileImage() async {
+    ImagePicker imagePicker = ImagePicker();
+    final XFile? result = await imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+
+    if (result != null) {
+      _selectedImage = result;
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 }
